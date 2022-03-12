@@ -1,5 +1,8 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
+#include <DNSServer.h>
+#include <EEPROM.h>
+#include <ESP8266WebServer.h>
 
 #include <time.h>
 #include <TZ.h>
@@ -7,6 +10,21 @@
 #include <LittleFS.h>
 #include <CertStoreBearSSL.h>
 
+int re_wifi=0,re_mqtt=0;
+
+const char *softAP_ssid = "Remoteera";
+const char *softAP_password = "remoteera";
+
+char ssid[33] = "";
+char password[65] = "";
+
+
+const byte DNS_PORT = 53;
+IPAddress apIP(192, 168, 1, 1);
+IPAddress netMsk(255, 255, 255, 0);
+DNSServer dnsServer;
+ESP8266WebServer server(80);
+const char *myHostname = "esp8266";
 
 
 // Relays
@@ -34,8 +52,8 @@ int toggleState_5 = 1; //Define integer to remember the toggle state for relay 5
 
 // Update these with values suitable for your network.
 
-const char* ssid = "emg"; //WiFI Name
-const char* password = "haridy12"; //WiFi Password
+//const char* ssid = "emg"; //WiFI Name
+//const char* password = "haridy12"; //WiFi Password
 const char* mqttServer = "04c198eaf0e344c0823a1870ebc46c19.s1.eu.hivemq.cloud";
 const char* mqttUserName = "remoteera"; // MQTT username
 const char* mqttPwd = "Remoteera10"; // MQTT password
@@ -69,22 +87,25 @@ unsigned long lastMsg = 0;
 #define MSG_BUFFER_SIZE  (80)
 char msg[MSG_BUFFER_SIZE];
 int value = 0;
-
-void setup_wifi() {
- delay(10);
- WiFi.begin(ssid, password);
- while (WiFi.status() != WL_CONNECTED) {
- delay(500);
- Serial.print(".");
- }
- Serial.println("");
- Serial.println("WiFi connected");
- Serial.println("IP address: ");
- Serial.println(WiFi.localIP());
-}
-
+bool m_set_up=true,connect=true;
 void reconnect() {
- while (!client.connected()) {
+  if(m_set_up){
+  m_set_up=false;
+  int numCerts = certStore.initCertStore(LittleFS, PSTR("/certs.idx"), PSTR("/certs.ar"));
+    Serial.printf("Number of CA certs read: %d\n", numCerts);
+    if (numCerts == 0) {
+        Serial.printf("No certs found. Did you run certs-from-mozilla.py and upload the LittleFS directory before running?\n");
+        return; // Can't connect to anything w/o certs!
+    }
+    BearSSL::WiFiClientSecure *bear = new BearSSL::WiFiClientSecure();
+    // Integrate the cert store with this connection
+    bear->setCertStore(&certStore);
+
+    client = *(new PubSubClient(*bear));
+    
+   client.setServer(mqttServer, 8883);
+   client.setCallback(callback);}
+  {
  if (client.connect(clientID, mqttUserName, mqttPwd)) {
  Serial.println("MQTT connected");
       // ... and resubscribe
@@ -96,11 +117,6 @@ void reconnect() {
       client.subscribe(states);
     } 
     else {
-      Serial.print("failed, rc=");
-      Serial.print(client.state());
-      Serial.println(" try again in 5 seconds");
-      // Wait 5 seconds before retrying
-      delay(5000);
     }
   }
 }
@@ -308,8 +324,10 @@ void setDateTime() {
     gmtime_r(&now, &timeinfo);
     Serial.printf("%s %s", tzname[0], asctime(&timeinfo));
 }
-
+unsigned int status = WL_IDLE_STATUS;
 void setup() {
+  Serial.begin(9600);
+  
   strcat(strcat(sub1, "switch1"),board_id);
   strcat(strcat(sub2, "switch2"),board_id);
   strcat(strcat(sub3, "switch3"),board_id);
@@ -324,7 +342,7 @@ void setup() {
   strcat(strcat(states, "states"),board_id);
 
 
-  Serial.begin(115200);
+  start_dns_server();
     
   pinMode(RelayPin1, OUTPUT);
   pinMode(RelayPin2, OUTPUT);
@@ -352,34 +370,42 @@ void setup() {
     
  
   LittleFS.begin();
-
-  setup_wifi();
+   
   setDateTime();
-
-  int numCerts = certStore.initCertStore(LittleFS, PSTR("/certs.idx"), PSTR("/certs.ar"));
-    Serial.printf("Number of CA certs read: %d\n", numCerts);
-    if (numCerts == 0) {
-        Serial.printf("No certs found. Did you run certs-from-mozilla.py and upload the LittleFS directory before running?\n");
-        return; // Can't connect to anything w/o certs!
-    }
-    BearSSL::WiFiClientSecure *bear = new BearSSL::WiFiClientSecure();
-    // Integrate the cert store with this connection
-    bear->setCertStore(&certStore);
-
-    client = *(new PubSubClient(*bear));
-    
-   client.setServer(mqttServer, 8883);
-   client.setCallback(callback);
 }
 
 void loop() {
-    if (!client.connected()) {
-    digitalWrite(wifiLed, HIGH);
-    reconnect();
-  }
-  else{
-    digitalWrite(wifiLed, LOW);
-    manual_control();
-  }
-  client.loop();
+  if(connect){
+      WiFi.disconnect();
+      WiFi.begin(ssid, password); 
+      re_wifi=millis();
+      connect=false;
+      }
+  unsigned int s = WiFi.status();
+   
+  if(s==0&&millis()>(re_wifi+60000)){
+    connect=true;
+   }
+   if(status!=s){
+    status=s;
+    if(s==WL_CONNECTED){
+        
+      }
+    else  {
+        WiFi.disconnect();
+      }
+    }
+    
+     if (s == WL_CONNECTED&&!client.connected()) {
+      digitalWrite(wifiLed, HIGH);
+      reconnect();
+      re_mqtt=millis(); 
+    }else if(client.connected()){
+      digitalWrite(wifiLed, LOW);
+      manual_control();
+    }
+   client.loop();
+     dnsServer.processNextRequest();
+  server.handleClient();
+ 
 }
