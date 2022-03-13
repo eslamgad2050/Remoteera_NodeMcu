@@ -33,7 +33,7 @@ const char *softAP_password = "remoteera";
 const char *myHostname = "esp8266";
 
 /* Don't set this wifi credentials. They are configurated at runtime and stored on EEPROM */
-char ssid[33] = "";
+char ssid[80] = "";
 char password[65] = "";
 
 // DNS server
@@ -180,14 +180,8 @@ void setup() {
   dnsServer.start(DNS_PORT, "*", apIP);
 
   /* Setup web pages: root, wifi config pages, SO captive portal detectors and not found. */
-  server.on("/", handleRoot);
-  server.on("/wifi", handleWifi);
-  server.on("/wifisave", handleWifiSave);
-  server.on("/generate_204", handleRoot);  //Android captive portal. Maybe not needed. Might be handled by notFound handler.
-  server.on("/fwlink", handleRoot);  //Microsoft captive portal. Maybe not needed. Might be handled by notFound handler.
   server.onNotFound(handleNotFound);
   server.begin(); // Web server start
-  Serial.println("HTTP server started");
   loadCredentials(); // Load WLAN credentials from network
   connect = strlen(ssid) > 0; // Request WLAN connect if there is a SSID
   setup_mqtt();
@@ -223,34 +217,17 @@ void loop() {
       status = s;
       if (s == WL_CONNECTED) {
         setDateTime();
-        
-        /* Just connected to WLAN */
-        Serial.println("");
-        Serial.print("Connected to ");
-        Serial.println(ssid);
-        Serial.print("IP address: ");
-        Serial.println(WiFi.localIP());
-
-        // Setup MDNS responder
-        if (!MDNS.begin(myHostname)) {
-          Serial.println("Error setting up MDNS responder!");
-        } else {
-          Serial.println("mDNS responder started");
-          // Add service to MDNS-SD
-          MDNS.addService("http", "tcp", 80);
-        }
       } else if (s == WL_NO_SSID_AVAIL) {
         WiFi.disconnect();
       }
     }
-    if (s == WL_CONNECTED) {
-      MDNS.update();
-}
   }
   
-      if (WiFi.status()==WL_CONNECTED&&!client.connected()) {
+      if (!client.connected()) {
       digitalWrite(wifiLed, HIGH);
-      reconnect();
+      if(WiFi.status()==WL_CONNECTED){
+       reconnect();
+       }
     }else if(client.connected()){
       digitalWrite(wifiLed, LOW);
       manual_control();
