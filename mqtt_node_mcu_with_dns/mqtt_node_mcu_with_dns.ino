@@ -11,20 +11,6 @@
 #include <FS.h>
 #include <LittleFS.h>
 #include <CertStoreBearSSL.h>
-/*
-   This example serves a "hello world" on a WLAN and a SoftAP at the same time.
-   The SoftAP allow you to configure WLAN parameters at run time. They are not setup in the sketch but saved on EEPROM.
-
-   Connect your computer or cell phone to wifi network ESP_ap with password 12345678. A popup may appear and it allow you to go to WLAN config. If it does not then navigate to http://192.168.4.1/wifi and config it there.
-   Then wait for the module to connect to your wifi and take note of the WLAN IP it got. Then you can disconnect from ESP_ap and return to your regular WLAN.
-
-   Now the ESP8266 is in your network. You can reach it through http://192.168.x.x/ (the IP you took note of) or maybe at http://esp8266.local too.
-
-   This is a captive portal because through the softAP it will redirect any http request to http://192.168.4.1/
-*/
-
-/* Set these to your desired softAP credentials. They are not configurable at runtime */
-
 
 const char *softAP_ssid = "Remoteera";
 const char *softAP_password = "remoteera";
@@ -76,11 +62,11 @@ unsigned int status = WL_IDLE_STATUS;
 //WiFi Status LED
 #define wifiLed    16   //D0
 
-int toggleState_1 = 1; //Define integer to remember the toggle state for relay 1
-int toggleState_2 = 1; //Define integer to remember the toggle state for relay 2
-int toggleState_3 = 1; //Define integer to remember the toggle state for relay 3
-int toggleState_4 = 1; //Define integer to remember the toggle state for relay 4
-int toggleState_5 = 1; //Define integer to remember the toggle state for relay 5
+int toggleState_1 = 0; //Define integer to remember the toggle state for relay 1
+int toggleState_2 = 0; //Define integer to remember the toggle state for relay 2
+int toggleState_3 = 0; //Define integer to remember the toggle state for relay 3
+int toggleState_4 = 0; //Define integer to remember the toggle state for relay 4
+int toggleState_5 = 0; //Define integer to remember the toggle state for relay 5
 
 // Update these with values suitable for your network.
 
@@ -89,10 +75,10 @@ int toggleState_5 = 1; //Define integer to remember the toggle state for relay 5
 const char* mqttServer = "04c198eaf0e344c0823a1870ebc46c19.s1.eu.hivemq.cloud";
 const char* mqttUserName = "remoteera"; // MQTT username
 const char* mqttPwd = "Remoteera10"; // MQTT password
-const char* clientID = "remo"; // client id
+const char* clientID = "remote"; // client id
 
 
-#define board_id "emg"
+#define board_id "mahmoud1"
 
 char sub1[50];  
 char sub2[50];
@@ -155,11 +141,11 @@ void setup() {
   pinMode(wifiLed, OUTPUT);
 
   //During Starting all Relays should TURN OFF
-  digitalWrite(RelayPin1, HIGH);
-  digitalWrite(RelayPin2, HIGH);
-  digitalWrite(RelayPin3, HIGH);
-  digitalWrite(RelayPin4, HIGH);
-  digitalWrite(RelayPin5, HIGH);
+  digitalWrite(RelayPin1, LOW);
+  digitalWrite(RelayPin2, LOW);
+  digitalWrite(RelayPin3, LOW);
+  digitalWrite(RelayPin4, LOW);
+  digitalWrite(RelayPin5, LOW);
   
   //During Starting WiFi LED should TURN OFF
   digitalWrite(wifiLed, HIGH);
