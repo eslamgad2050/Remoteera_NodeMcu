@@ -77,6 +77,7 @@ const char* mqttUserName = "remoteera"; // MQTT username
 const char* mqttPwd = "Remoteera10"; // MQTT password
 const char* clientID = "remote"; // client id
 
+int board_number=0;
 
 #define board_id "mahmoud1"
 
@@ -110,19 +111,45 @@ int value = 0;
 void setup() {
   delay(1000);
   Serial.begin(115200);
+ //sub
+  String temp="switch"+String(1+board_number*5)+board_id;
+  temp.toCharArray(sub1,50);
   
+  temp="switch"+String(2+board_number*5)+board_id;
+  temp.toCharArray(sub2,50);
   
-  strcat(strcat(sub1, "switch1"),board_id);
-  strcat(strcat(sub2, "switch2"),board_id);
-  strcat(strcat(sub3, "switch3"),board_id);
-  strcat(strcat(sub4, "switch4"),board_id);
-  strcat(strcat(sub5, "switch5"),board_id);
+  temp="switch"+String(3+board_number*5)+board_id;
+  temp.toCharArray(sub3,50);
+  
+  temp="switch"+String(4+board_number*5)+board_id;
+  temp.toCharArray(sub4,50);
+  
+  temp="switch"+String(5+board_number*5)+board_id;
+  temp.toCharArray(sub5,50);
 
-  strcat(strcat(pub1, "switch1_status"),board_id);
+//pub
+  temp="switch"+String(1+board_number*5)+"_status"+board_id;
+  temp.toCharArray(pub1,50);
+  
+  temp="switch"+String(2+board_number*5)+"_status"+board_id;
+  temp.toCharArray(pub2,50);
+  
+  temp="switch"+String(3+board_number*5)+"_status"+board_id;
+  temp.toCharArray(pub3,50);
+  
+  temp="switch"+String(4+board_number*5)+"_status"+board_id;
+  temp.toCharArray(pub4,50);
+  
+  temp="switch"+String(5+board_number*5)+"_status"+board_id;
+  temp.toCharArray(pub5,50);
+
+  
+  
+/*  strcat(strcat(pub1, "switch1_status"),board_id);
   strcat(strcat(pub2, "switch2_status"),board_id);
   strcat(strcat(pub3, "switch3_status"),board_id);
   strcat(strcat(pub4, "switch4_status"),board_id);
-  strcat(strcat(pub5, "switch5_status"),board_id);
+  strcat(strcat(pub5, "switch5_status"),board_id);*/
   strcat(strcat(states, "states"),board_id);
 
     
