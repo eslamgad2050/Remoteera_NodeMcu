@@ -79,7 +79,7 @@ const char* clientID = "remote"; // client id
 
 int board_number=0;
 
-#define board_id "mahmoud1"
+#define board_id "emg"
 
 char sub1[50];  
 char sub2[50];
@@ -109,6 +109,7 @@ int value = 0;
 
 
 void setup() {
+  loadStates();
   delay(1000);
   Serial.begin(115200);
  //sub
@@ -143,13 +144,6 @@ void setup() {
   temp="switch"+String(5+board_number*5)+"_status"+board_id;
   temp.toCharArray(pub5,50);
 
-  
-  
-/*  strcat(strcat(pub1, "switch1_status"),board_id);
-  strcat(strcat(pub2, "switch2_status"),board_id);
-  strcat(strcat(pub3, "switch3_status"),board_id);
-  strcat(strcat(pub4, "switch4_status"),board_id);
-  strcat(strcat(pub5, "switch5_status"),board_id);*/
   strcat(strcat(states, "states"),board_id);
 
     
@@ -168,11 +162,11 @@ void setup() {
   pinMode(wifiLed, OUTPUT);
 
   //During Starting all Relays should TURN OFF
-  digitalWrite(RelayPin1, LOW);
-  digitalWrite(RelayPin2, LOW);
-  digitalWrite(RelayPin3, LOW);
-  digitalWrite(RelayPin4, LOW);
-  digitalWrite(RelayPin5, LOW);
+  digitalWrite(RelayPin1, toggleState_1);
+  digitalWrite(RelayPin2, toggleState_2);
+  digitalWrite(RelayPin3, toggleState_3);
+  digitalWrite(RelayPin4, toggleState_4);
+  digitalWrite(RelayPin5, toggleState_5);
   
   //During Starting WiFi LED should TURN OFF
   digitalWrite(wifiLed, HIGH);

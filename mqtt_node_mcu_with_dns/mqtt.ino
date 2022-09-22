@@ -134,4 +134,5 @@ void callback(char* topic, byte* payload, unsigned int length) {
     Serial.println("unsubscribed topic");
   }
   delay(200);
+saveStates();
 }

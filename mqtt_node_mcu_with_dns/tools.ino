@@ -27,6 +27,7 @@ void setDateTime() {
     Serial.print("Waiting for NTP time sync: ");
     time_t now = time(nullptr);
     while (now < 8 * 3600 * 2) {
+        yield();
         delay(100);
         Serial.print(".");
         now = time(nullptr);

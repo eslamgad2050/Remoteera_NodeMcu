@@ -27,6 +27,8 @@ void saveCredentials() {
 }
 void saveStates(){
   EEPROM.begin(512);
+
+
   EEPROM.put( sizeof(ssid)+sizeof(password)+3, toggleState_1);
   EEPROM.put(sizeof(ssid)+sizeof(password)+7, toggleState_2);
   EEPROM.put(sizeof(ssid)+sizeof(password)+11, toggleState_3);
@@ -52,7 +54,4 @@ void saveStates(){
     ssid[0] = 0;
     password[0] = 0;
   }
-  Serial.println("Recovered credentials:");
-  Serial.println(ssid);
-  Serial.println(strlen(password) > 0 ? "********" : "<no password>");
 }
